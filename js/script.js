@@ -1,7 +1,23 @@
 "use strict";
 var dt = (function () {
-    var data_table;
-    var jqtable;
+    var data_table,
+        dt_cols = [{
+                "mDataProp": "first_name",
+                sTitle: "FName"
+            },
+            {
+                "mDataProp": "last_name",
+                sTitle: "LName"
+            },
+            {
+                "mDataProp": "email",
+                "sTitle": "Email"
+            },
+            {
+                "mDataProp": "gender",
+                sTitle: "Gender"
+            }
+        ];
 
     function ajaxCall(options) {
         var defer = $.Deferred();
@@ -52,57 +68,25 @@ var dt = (function () {
         });
 
         $('#btnAddCol').click(function () {
-
-            //new column information
-            //row's new field(for new column)
-            //cols must be updated
-            cols.splice(col_num + 1, 0, {
-                "mDataProp": "newField" + iter,
-                sTitle: "Col-" + iter,
-                sType: "string"
+            data_table.destroy();
+            var index = $('th').index($('th[data-colGroup="details"]'));
+            var position = parseInt($('th[data-colGroup="details"]').attr('colspan'));
+            var target_insertion = index + position;
+            $($('#example thead tr:first-child').find($('th[data-colGroup="details"]')).get(0)).attr('colspan', position + 1);
+            $('#example thead tr:last-child th[data-colGroup="details"]:last-of-type').after($('<th></th>').html('IP').attr('data-colGroup', 'details'));
+            dt_cols.splice(target_insertion, 0, {
+                "mDataProp": "ip_address",
+                sTitle: "IP"
             });
-            //update the result, actual data to be displayed
-            for (var iRes = 0; iRes < results.length; iRes++) {
-                results[iRes]["newField" + iter] = "data-" + iter;
-            }
-            //destroy the table
-            data_table.fnDestroy();
-            $("#example thead tr th").eq(col_num).after('<th>Col-' + iter + '</th>');
-            //init again
             loadTable();
-            iter++;
         });
     }
 
     function loadTable() {
         $.get("db/db.json", function (data) {
-            var cols = [{
-                    "mDataProp": "first_name",
-                    sTitle: "FName"
-                },
-                {
-                    "mDataProp": "last_name",
-                    sTitle: "LName"
-                },
-                {
-                    "mDataProp": "email",
-                    "sTitle": "Email"
-                },
-                {
-                    "mDataProp": "gender",
-                    sTitle: "Gender"
-                }
-            ];
-            var jqcols = [
-                { label: 'FName', name: 'first_name', key: true, width: 75 },
-                { label: 'LName', name: 'last_name', width: 150 },
-                { label: 'Email', name: 'email', width: 150},
-                { label: 'Gender', name: 'gender', width: 150 }
-            ];
-
             data_table = $('#example').DataTable({
                 data: data.slice(0, 5),
-                columns: cols,
+                columns: dt_cols,
                 bDeferRender: true,
                 bDestroy: true,
                 scrollY: "300px",
@@ -110,27 +94,54 @@ var dt = (function () {
                 scrollCollapse: true,
                 pagingType: 'numbers',
                 pageLength: 50,
+                fixedHeader: true,
                 fixedColumns: {
                     leftColumns: 2
                 }
             });
+            window.data_table = data_table;
+            addRowColumnButtonHandlers();
+        });
+    }
 
+    function loadJqGrid() {
+        $.get("db/db.json", function (data) {
+            var jqcols = [{
+                    label: 'FName',
+                    name: 'first_name',
+                    key: true,
+                    width: 75
+                },
+                {
+                    label: 'LName',
+                    name: 'last_name',
+                    width: 150
+                },
+                {
+                    label: 'Email',
+                    name: 'email',
+                    width: 150
+                },
+                {
+                    label: 'Gender',
+                    name: 'gender',
+                    width: 150
+                }
+            ];
             jqtable = $("#jqtable").jqGrid({
                 datatype: "local",
-				data: data.slice(0, 5),
+                data: data.slice(0, 5),
                 colModel: jqcols,
+                idPrefix: "g1_",
                 guiStyle: "bootstrap",
-				viewrecords: true,
-                width: 780,
-                height: 250,
+                viewrecords: true,
                 rowNum: 20,
                 pager: "#jqtablePager"
             });
-
-            attachTableClickEventHandlers();
         });
     }
     return {
-        loadTable: loadTable
+        loadTable: loadTable,
+        loadJqGrid: loadJqGrid
     }
 })();
