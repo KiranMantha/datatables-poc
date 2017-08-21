@@ -1,6 +1,7 @@
 "use strict";
 var dt = (function () {
     var data_table;
+    var jqtable;
 
     function ajaxCall(options) {
         var defer = $.Deferred();
@@ -92,6 +93,13 @@ var dt = (function () {
                     sTitle: "Gender"
                 }
             ];
+            var jqcols = [
+                { label: 'FName', name: 'first_name', key: true, width: 75 },
+                { label: 'LName', name: 'last_name', width: 150 },
+                { label: 'Email', name: 'email', width: 150},
+                { label: 'Gender', name: 'gender', width: 150 }
+            ];
+
             data_table = $('#example').DataTable({
                 data: data.slice(0, 5),
                 columns: cols,
@@ -106,6 +114,19 @@ var dt = (function () {
                     leftColumns: 2
                 }
             });
+
+            jqtable = $("#jqtable").jqGrid({
+                datatype: "local",
+				data: data.slice(0, 5),
+                colModel: jqcols,
+                guiStyle: "bootstrap",
+				viewrecords: true,
+                width: 780,
+                height: 250,
+                rowNum: 20,
+                pager: "#jqtablePager"
+            });
+
             attachTableClickEventHandlers();
         });
     }
